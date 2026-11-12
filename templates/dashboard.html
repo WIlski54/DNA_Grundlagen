@@ -627,6 +627,10 @@
     mo.placeholder = KI.anbieter_liste[sel.value] ? KI.anbieter_liste[sel.value].modell : '';
     var pille = document.getElementById('ki-pille');
     pille.textContent = !KI.eingerichtet ? 'nicht eingerichtet' : KI.an ? 'bereit · ' + KI.modell : 'ausgeschaltet';
+    if (KI.eingerichtet && KI.tageslimit) {
+      var proz = Math.min(100, Math.round(100 * KI.verbrauch_heute / KI.tageslimit));
+      pille.textContent += ' · heute ' + proz + ' % von ' + KI.tageslimit.toLocaleString('de-DE') + ' Tokens';
+    }
     pille.className = 'ki-pille ' + (KI.verfuegbar ? 'an' : 'aus');
     var knopf = document.getElementById('ki-knopf');
     knopf.textContent = KI.verfuegbar ? '🤖 KI an' : '🤖 KI aus';

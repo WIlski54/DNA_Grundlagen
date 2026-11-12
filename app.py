@@ -140,6 +140,12 @@ def init_db():
             geloescht   INTEGER NOT NULL DEFAULT 0
         );
         ''')
+        # KI-Tageskontingent: verbrauchte Tokens je Kalendertag (Europe/Berlin). Keine personenbezogenen Daten,
+        # wird daher von der Auto-Löschung NICHT geleert (sonst ließe sich das Limit durch Löschen umgehen).
+        db.execute('''CREATE TABLE IF NOT EXISTS ki_tagesverbrauch (
+            datum  TEXT PRIMARY KEY,
+            tokens INTEGER NOT NULL DEFAULT 0
+        )''')
         db.executescript(TAFEL_SCHEMA)      # digitale Tafel: Zustand + Dateien
 
 
@@ -1040,6 +1046,37 @@ KI_PAUSE = 2.0               # Sekunden zwischen zwei Fragen derselben Person
 KI_MAX_TOKENS = 400
 KI_TIMEOUT = 30
 
+# Tageskontingent für alle KI-Anfragen zusammen (Eingabe + Ausgabe). 0 = unbegrenzt.
+try:
+    KI_TAGESLIMIT = max(0, int(os.environ.get('KI_TAGESLIMIT_TOKENS') or 0))
+except ValueError:
+    KI_TAGESLIMIT = 0
+
+
+def _heute():
+    return datetime.datetime.now(TZ).strftime('%Y-%m-%d')
+
+
+def ki_verbrauch_heute():
+    with db_conn() as db:
+        r = db.execute('SELECT tokens FROM ki_tagesverbrauch WHERE datum=?', (_heute(),)).fetchone()
+    return r['tokens'] if r else 0
+
+
+def ki_verbrauch_buchen(tokens):
+    if tokens <= 0:
+        return
+    with db_conn() as db:
+        db.execute('INSERT INTO ki_tagesverbrauch (datum, tokens) VALUES (?, ?) '
+                   'ON CONFLICT(datum) DO UPDATE SET tokens = tokens + excluded.tokens', (_heute(), int(tokens)))
+        db.execute('DELETE FROM ki_tagesverbrauch WHERE datum < ?',
+                   ((datetime.datetime.now(TZ) - datetime.timedelta(days=30)).strftime('%Y-%m-%d'),))
+
+
+def ki_tageslimit_erreicht():
+    return bool(KI_TAGESLIMIT) and ki_verbrauch_heute() >= KI_TAGESLIMIT
+
+
 KI = {
     'anbieter': os.environ.get('KI_PROVIDER') if os.environ.get('KI_PROVIDER') in KI_ANBIETER else 'anthropic',
     'modell': None,
@@ -1060,6 +1097,7 @@ def ki_status():
     """Status für Lehrer-Ansichten. Enthält NIE den Key."""
     return {'eingerichtet': bool(KI['key']), 'an': KI['an'], 'verfuegbar': ki_verfuegbar(),
             'anbieter': KI['anbieter'], 'modell': KI['modell'],
+            'tageslimit': KI_TAGESLIMIT, 'verbrauch_heute': ki_verbrauch_heute(),
             'anbieter_liste': {k: {'name': v['name'], 'modell': v['modell']} for k, v in KI_ANBIETER.items()}}
 
 
@@ -1144,6 +1182,17 @@ def ki_aufruf(system, nachrichten, anbieter=None, modell=None, key=None):
         raise KiFehler('dienst')
     try:
         if anbieter == 'anthropic':
+            nutzung = antwort.get('usage') or {}
+            tokens = int(nutzung.get('input_tokens') or 0) + int(nutzung.get('output_tokens') or 0)
+        else:
+            tokens = int((antwort.get('usageMetadata') or {}).get('totalTokenCount') or 0)
+    except (TypeError, ValueError, AttributeError):
+        tokens = 0
+    if not tokens:                              # Anbieter liefert keine Zahl: grob schätzen (≈ 4 Zeichen je Token)
+        tokens = (len(json.dumps(body)) + KI_MAX_TOKENS * 4) // 4
+    ki_verbrauch_buchen(tokens)
+    try:
+        if anbieter == 'anthropic':
             text = ''.join(b.get('text', '') for b in antwort['content'] if b.get('type') == 'text')
         else:
             text = ''.join(p.get('text', '') for p in antwort['candidates'][0]['content']['parts'])
@@ -1222,6 +1271,8 @@ def ki_arbeit(sid, nr):
     """Läuft im Hintergrund: fragt die KI und liefert die Antwort aus."""
     try:
         try:
+            if ki_tageslimit_erreicht():
+                raise KiFehler('tageslimit')
             text = ki_aufruf(ki_system(sid, nr), ki_nachrichten(sid, nr))
         except KiFehler as e:
             ki_ereignis(sid, 'ki_fehler', {'aufgabe': nr, 'grund': e.grund})
@@ -1232,6 +1283,8 @@ def ki_arbeit(sid, nr):
         if lade_hilfe(sid).get(nr) != 'ki':                 # Lehrkraft hat die KI inzwischen wieder weggenommen
             return
         ki_senden(sid, nr, 'ki', text)
+        if KI_TAGESLIMIT:
+            socketio.emit('ki_status', ki_status(), to='lehrer_room')     # Verbrauch im Dashboard aktualisieren
     finally:
         ki_laeuft.discard((sid, nr))
         ki_ereignis(sid, 'ki_denkt', {'aufgabe': nr, 'aktiv': False})
@@ -1252,6 +1305,8 @@ def on_ki_frage(data):
         return {'ok': False, 'fehler': 'nicht_freigegeben'}
     if not ki_verfuegbar():
         return {'ok': False, 'fehler': 'ki_aus'}
+    if ki_tageslimit_erreicht():
+        return {'ok': False, 'fehler': 'tageslimit'}
     if (sid, nr) in ki_laeuft:
         return {'ok': False, 'fehler': 'warten'}
     jetzt_s = time.monotonic()

@@ -242,6 +242,7 @@
     warten: 'Einen Moment, die KI antwortet noch.',
     zu_schnell: 'Nicht so schnell – warte kurz und frage dann nochmal.',
     limit: 'Du hast alle Fragen für diese Aufgabe gestellt. Sprich Deine Lehrkraft an.',
+    tageslimit: 'Das KI-Kontingent für heute ist aufgebraucht. Sprich Deine Lehrkraft an.',
     ungueltig: 'Bitte schreibe eine kurze Frage (höchstens 500 Zeichen).'
   };
 
@@ -378,7 +379,8 @@
       if (LEHRER_EDIT && d.schueler_id !== LEHRER_EDIT.schueler_id) { return; }
       var b = kiBoxen[d.aufgabe];
       if (b) {
-        b.fehler = MODUS === 'schueler' ? 'Die KI antwortet gerade nicht. Versuche es gleich nochmal oder melde Dich bei Deiner Lehrkraft.'
+        b.fehler = d.grund === 'tageslimit' ? KI_FRAGE_FEHLER.tageslimit
+                 : MODUS === 'schueler' ? 'Die KI antwortet gerade nicht. Versuche es gleich nochmal oder melde Dich bei Deiner Lehrkraft.'
                                          : 'KI-Fehler (' + d.grund + '): Die Frage wurde nicht beantwortet.';
         kiAktualisieren(d.aufgabe);
       }
