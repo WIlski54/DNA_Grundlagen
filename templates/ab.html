@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ ab.titel }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ab.css', v=v) }}">
+</head>
+<body class="schueler-ansicht">
+
+<div class="leiste">
+  <div class="links">
+    <span>{{ pseudonym }}</span>
+    {% if ab.original %}
+    <nav class="reiter" role="tablist" aria-label="Ansicht">
+      <button type="button" class="reiter-knopf" role="tab" data-reiter="original">📄 Original</button>
+      <button type="button" class="reiter-knopf" role="tab" data-reiter="ab">✏️ Arbeitsblatt</button>
+    </nav>
+    {% endif %}
+  </div>
+  <div class="rechts">
+    <span id="speicher-status" class="speicher">…</span>
+    <a href="{{ url_for('logout') }}">Abmelden</a>
+  </div>
+</div>
+
+{% include 'ab_blatt.html' %}
+
+{% if ab.original %}
+{# Reiter „Original“: die Originalarbeitsblätter (PDF) als Leser. Liegt ÜBER dem AB, das AB bleibt darunter
+   vollständig aufgebaut (wichtig für Auto-Speichern, Lehrer-Ebene und Breiten-Abgleich). #}
+<section id="original" class="original" hidden aria-label="Originale Arbeitsblätter">
+  <div class="original-werkzeuge">
+    <span class="original-titel">Originale Arbeitsblätter</span>
+    <span class="original-seite">Seite <strong id="pdf-seite">1</strong> / <span id="pdf-seiten">–</span></span>
+    <button type="button" id="pdf-zurueck" aria-label="Vorherige Seite">◀</button>
+    <button type="button" id="pdf-vor" aria-label="Nächste Seite">▶</button>
+    <button type="button" id="pdf-klein" aria-label="Verkleinern">−</button>
+    <span id="pdf-zoom">100 %</span>
+    <button type="button" id="pdf-gross" aria-label="Vergrößern">+</button>
+    <button type="button" id="pdf-breite">Breite</button>
+    <button type="button" id="pdf-zum-ab" class="zum-ab">✏️ Zum Arbeitsblatt</button>
+  </div>
+  <div id="pdf-buehne" class="original-buehne"><div class="original-lade">Original wird geladen …</div></div>
+</section>
+{% endif %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+  window.AB_MODUS = 'schueler';
+  window.AB_WERTE = {{ werte|tojson }};
+  window.AB_VORSTELLEN = {{ vorstellen|tojson }};
+  window.AB_HILFE = {{ hilfe|tojson }};
+  window.AB_ANNOTATIONEN = {{ annotationen|tojson }};
+  window.AB_KI = {{ ki|tojson }};                       // {verlauf, verfuegbar} – nie der Key
+</script>
+<script src="{{ url_for('static', filename='js/ebene.js', v=v) }}"></script>
+<script src="{{ url_for('static', filename='js/ab.js', v=v) }}"></script>
+<script>
+  AB.start(io());
+</script>
+{% if ab.original %}
+<script src="{{ url_for('static', filename='vendor/pdf.min.js', v=v) }}"></script>
+<script>
+  window.ORIGINAL = { url: {{ url_for('original_pdf')|tojson }},
+                      worker: {{ url_for('static', filename='vendor/pdf.worker.min.js', v=v)|tojson }} };
+</script>
+<script src="{{ url_for('static', filename='js/original.js', v=v) }}"></script>
+{% endif %}
+
+{# Digitale Tafel: übernimmt den Bildschirm, solange die Lehrkraft sie live schaltet #}
+<div id="tafel-overlay" hidden><div id="tafel-flaeche"></div></div>
+{% set tafel_ohne_socketio = true %}{% include "_tafel.html" %}
+<script>window.AB_ICH = { id: {{ schueler_id|tojson }}, name: {{ pseudonym|tojson }} };</script>
+<script src="{{ url_for('static', filename='js/tafel_schueler.js', v=v) }}"></script>
+</body>
+</html>

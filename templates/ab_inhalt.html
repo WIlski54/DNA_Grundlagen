@@ -1,0 +1,142 @@
+{#
+  INHALT DES ARBEITSBLATTS
+  ------------------------
+  Nur diese Datei (und AB_META in app.py) ändern, um ein neues AB zu erstellen.
+
+  Regeln:
+  - Jede Aufgabe ist ein <section class="aufgabe" data-aufgabe="N"> (N = 1, 2, 3 ...).
+  - Eingabefelder bekommen ihre IDs automatisch (Reihenfolge innerhalb der Aufgabe).
+    Daher innerhalb einer Aufgabe die Reihenfolge der Felder nicht mehr ändern,
+    sobald Schüler:innen damit arbeiten.
+  - Text:        <input class="eingabe" type="text">   (kurz: class="eingabe kurz")
+  - Ankreuzen:   <input type="checkbox">
+  - Freitext:    <textarea class="eingabe freitext"></textarea>
+  - Schalenmodell: <div class="bohr-wrap" data-widget="bohr"> ... (siehe Aufgabe 4)
+  - Rand rechts mit "Möchte ich vorstellen" und "Ich brauche Hilfe": {{ rand() }}
+#}
+{% macro rand() %}
+<div class="rand">
+  <label class="vorstellen"><input type="checkbox" data-vorstellen><span>Möchte ich vorstellen<span class="status"></span></span></label>
+  <label class="hilfe"><input type="checkbox" data-hilfe><span>🙋 Ich brauche Hilfe<span class="status"></span></span></label>
+</div>
+{% endmacro %}
+
+<!-- ===== Aufgabe 1 ===== -->
+<section class="aufgabe" data-aufgabe="1">
+  <div class="aufgabe-inhalt">
+    <h2><span class="nr">1</span> Größenvergleich: Womit kann man es sehen?</h2>
+    <p>Nutze Abbildung 1 im Reiter <strong>Original</strong>. <strong>Gib an</strong>, womit man das Objekt gerade noch erkennen kann:
+       <em>Auge</em>, <em>Lichtmikroskop</em> oder <em>Elektronenmikroskop</em>.</p>
+    <table class="ab">
+      <tr><th>Objekt</th><th>Größe</th><th>sichtbar mit …</th></tr>
+      <tr><td>Hühnerei</td><td class="mitte">ca. 5 cm</td><td><input class="eingabe" type="text"></td></tr>
+      <tr><td>Tierzelle</td><td class="mitte">ca. 20 µm</td><td><input class="eingabe" type="text"></td></tr>
+      <tr><td>Zellkern</td><td class="mitte">ca. 9 µm</td><td><input class="eingabe" type="text"></td></tr>
+      <tr><td>Virus</td><td class="mitte">ca. 100 nm</td><td><input class="eingabe" type="text"></td></tr>
+      <tr><td>DNA-Molekül (Dicke)</td><td class="mitte">ca. 2 nm</td><td><input class="eingabe" type="text"></td></tr>
+    </table>
+  </div>
+  {{ rand() }}
+</section>
+
+<!-- ===== Aufgabe 2 ===== -->
+<section class="aufgabe" data-aufgabe="2">
+  <div class="aufgabe-inhalt">
+    <h2><span class="nr">2</span> Zellkern, Chromosomen und DNA</h2>
+    <p><strong>Vervollständige</strong> den Text mithilfe des Buchtextes.</p>
+    <p style="line-height:2.3">
+      Lebewesen mit einem Zellkern nennt man <input class="eingabe luecke" type="text">. Der Zellkern ist von einer
+      <input class="eingabe luecke" type="text"> umgeben. Die Gesamtheit der Erbinformationen eines Lebewesens bezeichnet man als
+      <input class="eingabe luecke" type="text">. Träger der Erbinformationen sind die <input class="eingabe luecke" type="text">.
+      Sie bestehen unter anderem aus <input class="eingabe luecke" type="text">, einem langen, spiralig aufgebauten Molekül.
+      Über <input class="eingabe luecke" type="text"> in der Kernhülle gelangen Informationen in das Cytoplasma.
+      Der Zellkern ist also die <input class="eingabe luecke" type="text"> der Zelle.
+    </p>
+  </div>
+  {{ rand() }}
+</section>
+
+<!-- ===== Aufgabe 3 ===== -->
+<section class="aufgabe" data-aufgabe="3">
+  <div class="aufgabe-inhalt">
+    <h2><span class="nr">3</span> Ein Zellkern so groß wie ein Tennisball</h2>
+    <p>Ein Zellkern hat einen Durchmesser von <strong>9 µm</strong>, ein Tennisball von <strong>10 cm</strong>.
+       <strong>Berechne</strong>, wie groß ein Mensch (1,75 m) wäre, wenn man ihn genauso stark vergrößert.</p>
+    <p class="hinweis">Tipp: 1 m = 1 000 000 µm. Rechne zuerst beide Größen in µm um.</p>
+    <p style="line-height:2.4">
+      10 cm = <input class="eingabe kurz" type="text" inputmode="decimal"> µm
+      &nbsp; Vergrößerung: <input class="eingabe kurz" type="text" inputmode="decimal"> -fach<br>
+      Größe des Menschen: <input class="eingabe kurz" type="text" inputmode="decimal"> m
+      &nbsp;= <input class="eingabe kurz" type="text" inputmode="decimal"> km
+    </p>
+  </div>
+  {{ rand() }}
+</section>
+
+<!-- ===== Aufgabe 4 ===== -->
+<section class="aufgabe" data-aufgabe="4">
+  <div class="aufgabe-inhalt">
+    <h2><span class="nr">4</span> Versuche an Krallenfröschen</h2>
+    <p>Sieh dir Abbildung 4 an. <strong>Beschreibe</strong> und <strong>werte</strong> die Versuche <strong>aus</strong>, indem du die Lücken füllst.</p>
+    <p style="line-height:2.3">
+      <strong>Versuch a:</strong> Mit ultravioletter Strahlung wird der <input class="eingabe luecke" type="text"> einer unbefruchteten Eizelle zerstört.
+      Das kernlose Ei <input class="eingabe luecke" type="text"> ab.<br>
+      <strong>Versuch b:</strong> Man entnimmt einer Kaulquappe eine <input class="eingabe luecke" type="text"> und überträgt ihren Zellkern mit einer
+      Mikropipette in ein kernloses Ei. Daraus entwickelt sich eine Kaulquappe und schließlich ein vollständiger <input class="eingabe luecke" type="text">.<br>
+      <strong>Auswertung:</strong> Ohne Zellkern kann sich das Ei nicht entwickeln. Auch der Kern einer Körperzelle enthält
+      die <input class="eingabe luecke" type="text"> Erbinformation eines Lebewesens.
+    </p>
+  </div>
+  {{ rand() }}
+</section>
+
+<!-- ===== Aufgabe 5 ===== -->
+<section class="aufgabe" data-aufgabe="5">
+  <div class="aufgabe-inhalt">
+    <h2><span class="nr">5</span> Regeneration bei <em>Acetabularia</em></h2>
+    <p>Eine junge Alge wird wie in Abbildung 5a in drei Teile zerschnitten.
+       <strong>Kreuze an</strong>, welcher Teil den Zellkern enthält und welcher Teil einen neuen Schirm bildet.</p>
+    <figure class="abb">
+      <img src="{{ url_for('original_bild', name='abb5a.jpg') }}" width="775" height="476"
+           alt="Abbildung 5a: Eine junge Alge wird in Schirmregion, Stiel und Wurzelregion zerschnitten; Ergebnis der Regeneration der drei Teile.">
+      <figcaption>Abb. 5a · Regenerationsversuch mit <em>Acetabularia</em> (aus dem Original)</figcaption>
+    </figure>
+    <table class="ab">
+      <tr><th>Algenteil</th><th>enthält den Zellkern</th><th>bildet einen neuen Schirm</th></tr>
+      <tr><td>Schirmregion (oberes Stück)</td><td class="mitte"><input type="checkbox"></td><td class="mitte"><input type="checkbox"></td></tr>
+      <tr><td>Stiel (Mittelstück)</td><td class="mitte"><input type="checkbox"></td><td class="mitte"><input type="checkbox"></td></tr>
+      <tr><td>Wurzelregion</td><td class="mitte"><input type="checkbox"></td><td class="mitte"><input type="checkbox"></td></tr>
+    </table>
+  </div>
+  {{ rand() }}
+</section>
+
+<!-- ===== Aufgabe 6 ===== -->
+<section class="aufgabe" data-aufgabe="6">
+  <div class="aufgabe-inhalt">
+    <h2><span class="nr">6</span> Eine Hypothese aufstellen</h2>
+    <p>Die drei Teile der Alge regenerieren ganz unterschiedlich (Abbildung 5a).
+       <strong>Stelle</strong> eine begründete <strong>Hypothese auf</strong>, die das unterschiedliche Regenerationsvermögen erklärt.
+       <strong>Überprüfe</strong> dann, ob deine Hypothese auch das Ergebnis von Experiment b (Abbildung 5b) erklärt. Abbildung 5a findest du bei Aufgabe 5.</p>
+    <figure class="abb">
+      <img src="{{ url_for('original_bild', name='abb5b.jpg') }}" width="655" height="223" style="max-width:480px"
+           alt="Abbildung 5b: Der Zellkern aus der Wurzelregion wird in einen kernlosen Stiel übertragen; daraus wächst eine vollständige Alge mit Schirm.">
+      <figcaption>Abb. 5b · Ein Zellkern wird in einen kernlosen Stiel übertragen (aus dem Original)</figcaption>
+    </figure>
+    <textarea class="eingabe freitext" rows="6"></textarea>
+  </div>
+  {{ rand() }}
+</section>
+
+<!-- ===== Aufgabe 7 ===== -->
+<section class="aufgabe" data-aufgabe="7">
+  <div class="aufgabe-inhalt">
+    <h2><span class="nr">7</span> Kombinationsversuche mit zwei Algenarten</h2>
+    <p>In Abbildung 6 wird der Stiel von <em>Acetabularia mediterranea</em> auf die Wurzelregion (mit Zellkern) von
+       <em>Acetabularia crenulata</em> gesetzt. Der Schirm wird zweimal abgeschnitten.
+       <strong>Stelle</strong> eine <strong>Hypothese auf</strong>, wie die Ergebnisse zu erklären sind:
+       Welche Schirmform entsteht zuerst, welche zum Schluss – und warum?</p>
+    <textarea class="eingabe freitext" rows="6"></textarea>
+  </div>
+  {{ rand() }}
+</section>
